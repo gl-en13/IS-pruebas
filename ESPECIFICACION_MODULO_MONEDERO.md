@@ -1,55 +1,62 @@
-# ESPECIFICACION_MODULO_MONEDERO
+# ESPECIFICACION DEL MODULO MONEDERO
 
-## Resumen Ejecutivo
-Este documento proporciona una especificación detallada para el Módulo de Saldo Digital Universitario, conocido como Monedero. Este módulo permite a los usuarios gestionar su saldo digital de manera eficiente y segura.
+## 1) Resumen Ejecutivo
+El módulo monedero es una solución diseñada para gestionar el saldo y las transacciones de los usuarios de manera efectiva. Este documento proporciona una especificación completa de sus funcionalidades y requisitos técnicos.
 
-## Stack Tecnológico
-- **Frontend**: React.js
-- **Backend**: Node.js con Express
-- **Base de Datos**: MongoDB
-- **Autenticación**: JWT
+## 2) Stack Tecnológico
+- **Framework:** Laravel 12.55.1
+- **Frontend:** Vue 3
+- **Base de Datos:** PostgreSQL
+- **Lenguaje:** PHP 8.2.12
 
-## Estructura de Archivos
-```
-/src
-  /components
-  /models
-  /routes
-  /controllers
-  /middlewares
-```
+## 3) Estructura Completa de Archivos
+- **app/**
+  - Http/
+  - Models/
+  - Services/
+- **resources/**
+  - js/
+  - views/
+- **database/**
+  - migrations/
+  - seeds/
+- **routes/**
 
-## Modelos de Datos
-```javascript
-const UserSchema = new Schema({
-  name: String,
-  email: String,
-  password: String,
-  balance: Number
-});
-```
+## 4) Modelos de Datos
+- **SaldoMonedero:** Representa el saldo disponible del usuario.
+- **SaldoMovimiento:** Registra las transacciones realizadas en el monedero.
+- **Recarga:** Maneja las operaciones de recarga de saldo.
 
-## APIs REST
-- **GET /users**: Obtiene la lista de usuarios.
-- **POST /users**: Crea un nuevo usuario.
-- **GET /balance**: Obtiene el saldo del usuario.
-- **POST /balance/add**: Añade saldo al usuario.
+## 5) APIs REST Completas
+- **GET /api/monedero/{id}** - Obtener saldo monedero.
+- **POST /api/monedero/recarga** - Realizar recarga de saldo.
+- **GET /api/monedero/historial** - Consultar historial de transacciones.
+- **POST /api/monedero/cargo** - Realizar un cargo.
+- **POST /api/monedero/abono** - Realizar un abono.
 
-## Funcionalidades
-- Gestión de usuarios
-- Gestión de saldo
-- Notificaciones de saldo bajo
+## 6) Funcionalidades Detalladas
+- **Consulta de saldo**: Permitir al usuario ver su saldo actual.
+- **Cargos/Abonos**: Implementar lógica para añadir y retirar fondos.
+- **Reglas**: Definir restricciones y validaciones.
+- **Historial**: Mostrar todas las transacciones realizadas.
+- **Dashboard**: Proporcionar una vista general del estado del monedero.
+- **Reportes**: Generar informes de uso y actividad.
 
-## Permisos
-- **Usuarios**: Pueden ver y gestionar su propio saldo.
-- **Administradores**: Pueden gestionar todos los usuarios y sus saldos.
+## 7) Permisos y Roles
+- **money.read**: Permiso para consultar saldos y movimientos.
+- **money.write**: Permiso para realizar operaciones de carga y consumo.
 
-## Componentes Frontend
-- **Login**: Componente para iniciar sesión.
-- **Dashboard**: Componente principal para mostrar el saldo.
+## 8) Componentes Frontend Vue
+- **Monedero.vue**: Componente principal para gestionar la interfaz del monedero.
+- **Saldo.vue**: Componente para mostrar el saldo.
+- **Transacciones.vue**: Componente para listar transacciones.
 
-## Checklist de Desarrollo
-- [ ] Configurar entorno de desarrollo
-- [ ] Implementar autenticación
-- [ ] Crear pruebas unitarias
-- [ ] Desplegar en producción
+## 9) Checklist de Desarrollo
+- [ ] Configuración del entorno.
+- [ ] Implementación de API.
+- [ ] Desarrollo de componentes Vue.
+- [ ] Pruebas unitarias y de integración.
+- [ ] Documentación.
+
+## 10) Diagramas de Relaciones
+Incluir diagramas que muestre la relación entre los modelos de datos y los flujos de trabajo.
