@@ -195,6 +195,7 @@ class RolesPermisosSeeder extends Seeder
             'topup.read',
             'voucher.read',
             'card.read',
+            'card.auth',
             'file.read',
             'file.write',
             'file.delete',
