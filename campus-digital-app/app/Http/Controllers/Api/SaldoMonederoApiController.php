@@ -4,7 +4,6 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\SaldoMonedero;
-use App\Models\SaldoMovimiento;
 use Illuminate\Http\Request;
 
 class SaldoMonederoApiController extends Controller
@@ -14,7 +13,9 @@ class SaldoMonederoApiController extends Controller
     {
         $query = SaldoMonedero::with('usuario')->whereNull('deleted_at');
 
-        if ($request->filled('usuario_id')) $query->where('usuario_id', $request->usuario_id);
+        if ($request->filled('usuario_id')) {
+            $query->where('usuario_id', $request->usuario_id);
+        }
 
         return response()->json($query->paginate($request->get('per_page', 15)));
     }
@@ -35,7 +36,7 @@ class SaldoMonederoApiController extends Controller
             ->where('usuario_id', $usuario_id)
             ->first();
 
-        if (!$monedero) {
+        if (! $monedero) {
             return response()->json(['message' => 'El usuario no tiene monedero registrado.'], 404);
         }
 
@@ -50,9 +51,9 @@ class SaldoMonederoApiController extends Controller
         ]);
 
         $monedero = SaldoMonedero::create([
-            'usuario_id'       => $request->usuario_id,
+            'usuario_id' => $request->usuario_id,
             'saldo_disponible' => 0.00,
-            'saldo_retenido'   => 0.00,
+            'saldo_retenido' => 0.00,
         ]);
 
         return response()->json($monedero->load('usuario'), 201);

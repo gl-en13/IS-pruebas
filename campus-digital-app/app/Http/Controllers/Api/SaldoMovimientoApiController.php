@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\SaldoMovimiento;
 use App\Models\SaldoMonedero;
+use App\Models\SaldoMovimiento;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -16,12 +16,24 @@ class SaldoMovimientoApiController extends Controller
         $query = SaldoMovimiento::with(['usuario', 'monedero', 'operador', 'tarjetaLectura'])
             ->whereNull('deleted_at');
 
-        if ($request->filled('usuario_id'))       $query->where('usuario_id', $request->usuario_id);
-        if ($request->filled('tipo'))             $query->where('tipo', $request->tipo);
-        if ($request->filled('modulo'))           $query->where('modulo', $request->modulo);
-        if ($request->filled('saldo_monedero_id'))$query->where('saldo_monedero_id', $request->saldo_monedero_id);
-        if ($request->filled('desde'))            $query->where('created_at', '>=', $request->desde);
-        if ($request->filled('hasta'))            $query->where('created_at', '<=', $request->hasta);
+        if ($request->filled('usuario_id')) {
+            $query->where('usuario_id', $request->usuario_id);
+        }
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+        if ($request->filled('modulo')) {
+            $query->where('modulo', $request->modulo);
+        }
+        if ($request->filled('saldo_monedero_id')) {
+            $query->where('saldo_monedero_id', $request->saldo_monedero_id);
+        }
+        if ($request->filled('desde')) {
+            $query->where('created_at', '>=', $request->desde);
+        }
+        if ($request->filled('hasta')) {
+            $query->where('created_at', '<=', $request->hasta);
+        }
 
         return response()->json($query->orderByDesc('created_at')->paginate($request->get('per_page', 20)));
     }
@@ -40,13 +52,13 @@ class SaldoMovimientoApiController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'usuario_id'       => 'required|exists:usuario,id',
-            'tipo'             => 'required|in:abono,cargo',
-            'monto'            => 'required|numeric|min:0.01',
-            'modulo'           => 'required|string|max:50',
-            'concepto'         => 'required|string|max:255',
+            'usuario_id' => 'required|exists:usuario,id',
+            'tipo' => 'required|in:abono,cargo',
+            'monto' => 'required|numeric|min:0.01',
+            'modulo' => 'required|string|max:50',
+            'concepto' => 'required|string|max:255',
             'operador_usuario_id' => 'nullable|exists:usuario,id',
-            'tarjeta_lectura_id'  => 'nullable|exists:tarjeta_lectura,id',
+            'tarjeta_lectura_id' => 'nullable|exists:tarjeta_lectura,id',
         ]);
 
         return DB::transaction(function () use ($request) {
@@ -70,23 +82,23 @@ class SaldoMovimientoApiController extends Controller
             $monedero->save();
 
             $movimiento = SaldoMovimiento::create([
-                'usuario_id'          => $request->usuario_id,
-                'saldo_monedero_id'   => $monedero->id,
-                'tipo'                => $request->tipo,
-                'monto'               => $request->monto,
-                'saldo_anterior'      => $saldoAnterior,
-                'saldo_nuevo'         => $monedero->saldo_disponible,
-                'modulo'              => $request->modulo,
-                'concepto'            => $request->concepto,
-                'referencia_tabla'    => $request->referencia_tabla,
-                'referencia_id'       => $request->referencia_id,
+                'usuario_id' => $request->usuario_id,
+                'saldo_monedero_id' => $monedero->id,
+                'tipo' => $request->tipo,
+                'monto' => $request->monto,
+                'saldo_anterior' => $saldoAnterior,
+                'saldo_nuevo' => $monedero->saldo_disponible,
+                'modulo' => $request->modulo,
+                'concepto' => $request->concepto,
+                'referencia_tabla' => $request->referencia_tabla,
+                'referencia_id' => $request->referencia_id,
                 'operador_usuario_id' => $request->operador_usuario_id,
-                'tarjeta_lectura_id'  => $request->tarjeta_lectura_id,
-                'meta_json'           => $request->meta_json ?? [],
+                'tarjeta_lectura_id' => $request->tarjeta_lectura_id,
+                'meta_json' => $request->meta_json ?? [],
             ]);
 
             return response()->json([
-                'movimiento'       => $movimiento->load('usuario'),
+                'movimiento' => $movimiento->load('usuario'),
                 'saldo_disponible' => $monedero->saldo_disponible,
             ], 201);
         });

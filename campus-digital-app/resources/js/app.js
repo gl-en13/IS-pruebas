@@ -117,6 +117,8 @@ window.route = (name, params) => {
         'archivos.marcar-visto':     '/archivos/:id/marcar-visto',
         'archivos.desmarcar-visto':  '/archivos/:id/desmarcar-visto',
         'archivos.nota':             '/archivos/:id/nota',
+        'monedero.recargas.index': '/monedero/recargas',
+        'monedero.recargas.store': '/monedero/recargas',
     };
     
     let url = routes[name] || '/';
