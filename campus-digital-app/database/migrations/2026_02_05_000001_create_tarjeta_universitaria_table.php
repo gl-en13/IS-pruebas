@@ -28,7 +28,7 @@ return new class extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('set null');
             $table->timestamp('bloqueado_at')->nullable();
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             $table->timestamps();
             $table->softDeletes();
         });

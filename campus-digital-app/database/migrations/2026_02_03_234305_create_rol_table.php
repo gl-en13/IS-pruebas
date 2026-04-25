@@ -21,16 +21,20 @@ return new class extends Migration
             $table->index('activo', 'idx_rol__activo');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_rol__set_updated_at
-            BEFORE UPDATE ON rol
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_rol__set_updated_at
+                BEFORE UPDATE ON rol
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_rol__set_updated_at ON rol');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_rol__set_updated_at ON rol');
+        }
         Schema::dropIfExists('rol');
     }
 };

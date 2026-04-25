@@ -31,11 +31,13 @@ return new class extends Migration
             $table->index('padre_id',    'idx_archivo_carpeta__padre_id');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_archivo_carpeta__set_updated_at
-            BEFORE UPDATE ON archivo_carpeta
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_archivo_carpeta__set_updated_at
+                BEFORE UPDATE ON archivo_carpeta
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
 
         Schema::create('archivo', function (Blueprint $table) {
             $table->id();
@@ -75,17 +77,21 @@ return new class extends Migration
             $table->index('created_at',   'idx_archivo__created_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_archivo__set_updated_at
-            BEFORE UPDATE ON archivo
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_archivo__set_updated_at
+                BEFORE UPDATE ON archivo
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_archivo__set_updated_at ON archivo');
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_archivo_carpeta__set_updated_at ON archivo_carpeta');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_archivo__set_updated_at ON archivo');
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_archivo_carpeta__set_updated_at ON archivo_carpeta');
+        }
         Schema::dropIfExists('archivo');
         Schema::dropIfExists('archivo_carpeta');
     }

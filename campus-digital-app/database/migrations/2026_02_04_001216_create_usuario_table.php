@@ -22,19 +22,14 @@ return new class extends Migration
             $table->timestampTz('ultimo_login_at')->nullable();
             $table->boolean('bloqueado')->default(false);
             $table->timestampTz('bloqueado_hasta')->nullable();
-            $table->jsonb('seguridad_json')->default('{}');
+            $table->text('seguridad_json')->default('{}');
+            
+            $table->string('email')->unique()->nullable(false);
             
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
             $table->timestampTz('deleted_at')->nullable();
         });
-
-        DB::statement('ALTER TABLE usuario ADD COLUMN email CITEXT NOT NULL');
-
-        DB::statement('ALTER TABLE usuario ADD CONSTRAINT uq_usuario__email UNIQUE (email)');
-        DB::statement('ALTER TABLE usuario ADD CONSTRAINT ck_usuario__email_no_vacio CHECK (length(trim(email::text)) > 3)');
-        DB::statement('ALTER TABLE usuario ADD CONSTRAINT ck_usuario__nombre_len CHECK (length(nombre) <= 120)');
-        DB::statement('ALTER TABLE usuario ADD CONSTRAINT ck_usuario__apellido_len CHECK (length(apellido) <= 120)');
 
         Schema::table('usuario', function (Blueprint $table) {
             $table->index('email', 'idx_usuario__email');
@@ -43,16 +38,20 @@ return new class extends Migration
             $table->index('deleted_at', 'idx_usuario__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_usuario__set_updated_at
-            BEFORE UPDATE ON usuario
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_usuario__set_updated_at
+                BEFORE UPDATE ON usuario
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario__set_updated_at ON usuario');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario__set_updated_at ON usuario');
+        }
         Schema::dropIfExists('usuario');
     }
 };

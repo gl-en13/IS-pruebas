@@ -28,18 +28,24 @@ return new class extends Migration
             $table->index('expira_at', 'idx_usuario_password_reset__expira_at');
         });
 
-        DB::statement('ALTER TABLE usuario_password_reset ADD CONSTRAINT ck_usuario_password_reset__expira_future CHECK (expira_at > solicitado_at)');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE usuario_password_reset ADD CONSTRAINT ck_usuario_password_reset__expira_future CHECK (expira_at > solicitado_at)');
+        }
 
-        DB::unprepared('
-            CREATE TRIGGER trg_usuario_password_reset__set_updated_at
-            BEFORE UPDATE ON usuario_password_reset
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_usuario_password_reset__set_updated_at
+                BEFORE UPDATE ON usuario_password_reset
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_password_reset__set_updated_at ON usuario_password_reset');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_password_reset__set_updated_at ON usuario_password_reset');
+        }
         Schema::dropIfExists('usuario_password_reset');
     }
 };

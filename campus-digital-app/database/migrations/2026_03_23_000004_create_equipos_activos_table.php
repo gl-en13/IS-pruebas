@@ -41,16 +41,20 @@ return new class extends Migration
             $table->index('deleted_at',    'idx_equipos_activos__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_equipos_activos__set_updated_at
-            BEFORE UPDATE ON equipos_activos
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_equipos_activos__set_updated_at
+                BEFORE UPDATE ON equipos_activos
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_equipos_activos__set_updated_at ON equipos_activos');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_equipos_activos__set_updated_at ON equipos_activos');
+        }
         Schema::dropIfExists('equipos_activos');
     }
 };

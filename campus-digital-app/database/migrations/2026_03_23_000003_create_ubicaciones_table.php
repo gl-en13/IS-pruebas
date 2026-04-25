@@ -24,16 +24,20 @@ return new class extends Migration
             $table->index('deleted_at',        'idx_ubicaciones__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_ubicaciones__set_updated_at
-            BEFORE UPDATE ON ubicaciones
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_ubicaciones__set_updated_at
+                BEFORE UPDATE ON ubicaciones
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_ubicaciones__set_updated_at ON ubicaciones');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_ubicaciones__set_updated_at ON ubicaciones');
+        }
         Schema::dropIfExists('ubicaciones');
     }
 };

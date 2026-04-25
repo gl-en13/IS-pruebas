@@ -23,14 +23,16 @@ return new class extends Migration
             $table->text('detalle')->default('');
             $table->ipAddress('ip')->nullable();
             $table->text('user_agent')->default('');
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
             $table->timestampTz('deleted_at')->nullable();
         });
 
-        DB::statement('ALTER TABLE actividad_bitacora ADD CONSTRAINT ck_actividad_bitacora__accion_no_vacia CHECK (length(trim(accion)) > 0)');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE actividad_bitacora ADD CONSTRAINT ck_actividad_bitacora__accion_no_vacia CHECK (length(trim(accion)) > 0)');
+        }
 
         Schema::table('actividad_bitacora', function (Blueprint $table) {
             $table->index('usuario_id', 'idx_actividad_bitacora__usuario_id');
@@ -41,16 +43,20 @@ return new class extends Migration
             $table->index('created_at', 'idx_actividad_bitacora__created_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_actividad_bitacora__set_updated_at
-            BEFORE UPDATE ON actividad_bitacora
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_actividad_bitacora__set_updated_at
+                BEFORE UPDATE ON actividad_bitacora
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_actividad_bitacora__set_updated_at ON actividad_bitacora');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_actividad_bitacora__set_updated_at ON actividad_bitacora');
+        }
         Schema::dropIfExists('actividad_bitacora');
     }
 };

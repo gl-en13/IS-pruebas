@@ -23,21 +23,26 @@ return new class extends Migration
             $table->softDeletesTz();
         });
 
-        DB::statement("
-            CREATE TRIGGER trg_saldo_monedero__set_updated_at
-            BEFORE UPDATE ON saldo_monedero
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at()
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                CREATE TRIGGER trg_saldo_monedero__set_updated_at
+                BEFORE UPDATE ON saldo_monedero
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+            ");
 
-        DB::statement("
-            ALTER TABLE saldo_monedero
-            ADD CONSTRAINT ck_saldo_monedero__saldo_no_negativo
-            CHECK (saldo_disponible >= 0 AND saldo_retenido >= 0)
-        ");
+            DB::statement("
+                ALTER TABLE saldo_monedero
+                ADD CONSTRAINT ck_saldo_monedero__saldo_no_negativo
+                CHECK (saldo_disponible >= 0 AND saldo_retenido >= 0)
+            ");
+        }
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS trg_saldo_monedero__set_updated_at ON saldo_monedero');
+        }
         Schema::dropIfExists('saldo_monedero');
     }
 };

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->timestampTz('termina_at')->nullable();
             
             $table->boolean('activa')->default(true);
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
@@ -35,16 +35,20 @@ return new class extends Migration
             $table->index('activa', 'idx_usuario_sesion__activa');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_usuario_sesion__set_updated_at
-            BEFORE UPDATE ON usuario_sesion
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_usuario_sesion__set_updated_at
+                BEFORE UPDATE ON usuario_sesion
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_sesion__set_updated_at ON usuario_sesion');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_sesion__set_updated_at ON usuario_sesion');
+        }
         Schema::dropIfExists('usuario_sesion');
     }
 };

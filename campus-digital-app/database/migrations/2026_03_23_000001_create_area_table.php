@@ -23,16 +23,20 @@ return new class extends Migration
             $table->index('deleted_at', 'idx_area__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_area__set_updated_at
-            BEFORE UPDATE ON area
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_area__set_updated_at
+                BEFORE UPDATE ON area
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_area__set_updated_at ON area');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_area__set_updated_at ON area');
+        }
         Schema::dropIfExists('area');
     }
 };

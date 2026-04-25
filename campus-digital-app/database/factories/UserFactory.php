@@ -24,12 +24,34 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => fake()->name(),
+            'nombre' => fake()->firstName(),
+            'apellido' => fake()->lastName(),
             'email' => fake()->unique()->safeEmail(),
-            'email_verified_at' => now(),
-            'password' => static::$password ??= Hash::make('password'),
+            'password_hash' => static::$password ??= Hash::make('password'),
             'remember_token' => Str::random(10),
+            'email_verificado' => true,
         ];
+    }
+
+    /**
+     * Configure the factory.
+     */
+    public function configure(): static
+    {
+        return $this->afterCreating(function (\App\Models\User $user) {
+            // Assign estudiante role (id 3) if it exists
+            try {
+                $rol = \App\Models\Rol::find(3);
+                if ($rol) {
+                    \Illuminate\Support\Facades\DB::table('usuario_rol')->insert([
+                        'usuario_id' => $user->id,
+                        'rol_id' => 3,
+                    ]);
+                }
+            } catch (\Exception $e) {
+                // Silently fail if table doesn't exist or rol doesn't exist
+            }
+        });
     }
 
     /**
@@ -38,7 +60,7 @@ class UserFactory extends Factory
     public function unverified(): static
     {
         return $this->state(fn (array $attributes) => [
-            'email_verified_at' => null,
+            'email_verificado' => false,
         ]);
     }
 }

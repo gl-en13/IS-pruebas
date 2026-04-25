@@ -49,31 +49,38 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('set null');
 
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             $table->timestampsTz();
             $table->softDeletesTz();
         });
 
-        DB::statement("
-            CREATE TRIGGER trg_pedido__set_updated_at
-            BEFORE UPDATE ON pedido
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at()
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                CREATE TRIGGER trg_pedido__set_updated_at
+                BEFORE UPDATE ON pedido
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+            ");
 
-        DB::statement("
-            ALTER TABLE pedido
-            ADD CONSTRAINT ck_pedido__estado
-            CHECK (estado IN ('creado','aceptado','en_proceso','listo','entregado','cancelado'))
-        ");
+            DB::statement("
+                ALTER TABLE pedido
+                ADD CONSTRAINT ck_pedido__estado
+                CHECK (estado IN ('creado','aceptado','en_proceso','listo','entregado','cancelado'))
+            ");
+        }
 
-        DB::statement('CREATE INDEX idx_pedido__usuario_id ON pedido(usuario_id)');
-        DB::statement('CREATE INDEX idx_pedido__estado ON pedido(estado)');
-        DB::statement('CREATE INDEX idx_pedido__modulo ON pedido(modulo)');
-        DB::statement('CREATE INDEX idx_pedido__created_at ON pedido(created_at)');
+        Schema::table('pedido', function (Blueprint $table) {
+            $table->index('usuario_id', 'idx_pedido__usuario_id');
+            $table->index('estado', 'idx_pedido__estado');
+            $table->index('modulo', 'idx_pedido__modulo');
+            $table->index('created_at', 'idx_pedido__created_at');
+        });
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS trg_pedido__set_updated_at ON pedido');
+        }
         Schema::dropIfExists('pedido');
     }
 };

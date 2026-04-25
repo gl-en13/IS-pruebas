@@ -32,16 +32,20 @@ return new class extends Migration
             $table->index('deleted_at',               'idx_mantenimientos_preventivos__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_mantenimientos_preventivos__set_updated_at
-            BEFORE UPDATE ON mantenimientos_preventivos
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_mantenimientos_preventivos__set_updated_at
+                BEFORE UPDATE ON mantenimientos_preventivos
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_mantenimientos_preventivos__set_updated_at ON mantenimientos_preventivos');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_mantenimientos_preventivos__set_updated_at ON mantenimientos_preventivos');
+        }
         Schema::dropIfExists('mantenimientos_preventivos');
     }
 };

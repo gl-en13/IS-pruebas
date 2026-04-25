@@ -39,36 +39,43 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('set null');
 
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             $table->timestampsTz();
             $table->softDeletesTz();
         });
 
-        DB::statement("
-            CREATE TRIGGER trg_recarga__set_updated_at
-            BEFORE UPDATE ON recarga
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at()
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                CREATE TRIGGER trg_recarga__set_updated_at
+                BEFORE UPDATE ON recarga
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+            ");
 
-        DB::statement("
-            ALTER TABLE recarga
-            ADD CONSTRAINT ck_recarga__estado
-            CHECK (estado IN ('pendiente', 'exitoso', 'fallido'))
-        ");
+            DB::statement("
+                ALTER TABLE recarga
+                ADD CONSTRAINT ck_recarga__estado
+                CHECK (estado IN ('pendiente', 'exitoso', 'fallido'))
+            ");
 
-        DB::statement("
-            ALTER TABLE recarga
-            ADD CONSTRAINT ck_recarga__monto_positivo
-            CHECK (monto > 0)
-        ");
+            DB::statement("
+                ALTER TABLE recarga
+                ADD CONSTRAINT ck_recarga__monto_positivo
+                CHECK (monto > 0)
+            ");
+        }
 
-        DB::statement('CREATE INDEX idx_recarga__usuario_id ON recarga(usuario_id)');
-        DB::statement('CREATE INDEX idx_recarga__estado ON recarga(estado)');
-        DB::statement('CREATE INDEX idx_recarga__created_at ON recarga(created_at)');
+        Schema::table('recarga', function (Blueprint $table) {
+            $table->index('usuario_id', 'idx_recarga__usuario_id');
+            $table->index('estado', 'idx_recarga__estado');
+            $table->index('created_at', 'idx_recarga__created_at');
+        });
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS trg_recarga__set_updated_at ON recarga');
+        }
         Schema::dropIfExists('recarga');
     }
 };

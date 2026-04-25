@@ -12,15 +12,21 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    protected $table = 'usuario';
+
     /**
      * The attributes that are mass assignable.
      *
      * @var list<string>
      */
     protected $fillable = [
-        'name',
+        'nombre',
+        'apellido',
         'email',
+        'password_hash',
+        'name',
         'password',
+        'rol_id',
     ];
 
     /**
@@ -29,8 +35,9 @@ class User extends Authenticatable
      * @var list<string>
      */
     protected $hidden = [
-        'password',
+        'password_hash',
         'remember_token',
+        'password',
     ];
 
     /**
@@ -44,5 +51,31 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Map Laravel's 'password' column to our 'password_hash' column.
+     */
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password_hash'] = bcrypt($value);
+    }
+
+    public function getPasswordAttribute()
+    {
+        return $this->attributes['password_hash'] ?? null;
+    }
+
+    /**
+     * Map Laravel's 'name' column to our 'nombre' column.
+     */
+    public function setNameAttribute($value)
+    {
+        $this->attributes['nombre'] = $value;
+    }
+
+    public function getNameAttribute()
+    {
+        return $this->attributes['nombre'] ?? '';
     }
 }

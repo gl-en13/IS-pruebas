@@ -29,7 +29,7 @@ return new class extends Migration
                 ->constrained('usuario')
                 ->onUpdate('cascade')
                 ->onDelete('set null');
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             $table->timestamps();
             $table->softDeletes();
         });

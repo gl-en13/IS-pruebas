@@ -35,16 +35,20 @@ return new class extends Migration
             $table->index('deleted_at',         'idx_asignaciones_tecnicas__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_asignaciones_tecnicas__set_updated_at
-            BEFORE UPDATE ON asignaciones_tecnicas
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_asignaciones_tecnicas__set_updated_at
+                BEFORE UPDATE ON asignaciones_tecnicas
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_asignaciones_tecnicas__set_updated_at ON asignaciones_tecnicas');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_asignaciones_tecnicas__set_updated_at ON asignaciones_tecnicas');
+        }
         Schema::dropIfExists('asignaciones_tecnicas');
     }
 };

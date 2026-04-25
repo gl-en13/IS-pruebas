@@ -37,16 +37,20 @@ return new class extends Migration
             $table->index('deleted_at', 'idx_historial_tickets__deleted_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_historial_tickets__set_updated_at
-            BEFORE UPDATE ON historial_tickets
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_historial_tickets__set_updated_at
+                BEFORE UPDATE ON historial_tickets
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_historial_tickets__set_updated_at ON historial_tickets');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_historial_tickets__set_updated_at ON historial_tickets');
+        }
         Schema::dropIfExists('historial_tickets');
     }
 };

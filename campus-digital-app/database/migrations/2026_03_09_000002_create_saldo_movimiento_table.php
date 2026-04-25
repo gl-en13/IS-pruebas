@@ -47,37 +47,44 @@ return new class extends Migration
                   ->onUpdate('cascade')
                   ->onDelete('set null');
 
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             $table->timestampsTz();
             $table->softDeletesTz();
         });
 
-        DB::statement("
-            CREATE TRIGGER trg_saldo_movimiento__set_updated_at
-            BEFORE UPDATE ON saldo_movimiento
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at()
-        ");
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement("
+                CREATE TRIGGER trg_saldo_movimiento__set_updated_at
+                BEFORE UPDATE ON saldo_movimiento
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at()
+            ");
 
-        DB::statement("
-            ALTER TABLE saldo_movimiento
-            ADD CONSTRAINT ck_saldo_movimiento__tipo
-            CHECK (tipo IN ('abono','cargo'))
-        ");
+            DB::statement("
+                ALTER TABLE saldo_movimiento
+                ADD CONSTRAINT ck_saldo_movimiento__tipo
+                CHECK (tipo IN ('abono','cargo'))
+            ");
 
-        DB::statement("
-            ALTER TABLE saldo_movimiento
-            ADD CONSTRAINT ck_saldo_movimiento__monto_positivo
-            CHECK (monto > 0)
-        ");
+            DB::statement("
+                ALTER TABLE saldo_movimiento
+                ADD CONSTRAINT ck_saldo_movimiento__monto_positivo
+                CHECK (monto > 0)
+            ");
+        }
 
-        DB::statement('CREATE INDEX idx_saldo_movimiento__usuario_id ON saldo_movimiento(usuario_id)');
-        DB::statement('CREATE INDEX idx_saldo_movimiento__tipo ON saldo_movimiento(tipo)');
-        DB::statement('CREATE INDEX idx_saldo_movimiento__modulo ON saldo_movimiento(modulo)');
-        DB::statement('CREATE INDEX idx_saldo_movimiento__created_at ON saldo_movimiento(created_at)');
+        Schema::table('saldo_movimiento', function (Blueprint $table) {
+            $table->index('usuario_id', 'idx_saldo_movimiento__usuario_id');
+            $table->index('tipo', 'idx_saldo_movimiento__tipo');
+            $table->index('modulo', 'idx_saldo_movimiento__modulo');
+            $table->index('created_at', 'idx_saldo_movimiento__created_at');
+        });
     }
 
     public function down(): void
     {
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('DROP TRIGGER IF EXISTS trg_saldo_movimiento__set_updated_at ON saldo_movimiento');
+        }
         Schema::dropIfExists('saldo_movimiento');
     }
 };

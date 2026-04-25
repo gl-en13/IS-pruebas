@@ -16,7 +16,7 @@ return new class extends Migration
             $table->date('fecha_nacimiento')->nullable();
             $table->string('genero', 30)->default('');
             $table->text('direccion')->default('');
-            $table->jsonb('preferencias_json')->default('{}');
+            $table->text('preferencias_json')->default('{}');
             
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
@@ -25,16 +25,20 @@ return new class extends Migration
             $table->index('usuario_id', 'idx_usuario_perfil__usuario_id');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_usuario_perfil__set_updated_at
-            BEFORE UPDATE ON usuario_perfil
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_usuario_perfil__set_updated_at
+                BEFORE UPDATE ON usuario_perfil
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_perfil__set_updated_at ON usuario_perfil');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_usuario_perfil__set_updated_at ON usuario_perfil');
+        }
         Schema::dropIfExists('usuario_perfil');
     }
 };

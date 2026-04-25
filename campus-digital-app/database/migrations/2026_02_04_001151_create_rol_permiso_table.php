@@ -22,16 +22,20 @@ return new class extends Migration
             $table->index('permiso_id', 'idx_rol_permiso__permiso_id');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_rol_permiso__set_updated_at
-            BEFORE UPDATE ON rol_permiso
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_rol_permiso__set_updated_at
+                BEFORE UPDATE ON rol_permiso
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_rol_permiso__set_updated_at ON rol_permiso');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_rol_permiso__set_updated_at ON rol_permiso');
+        }
         Schema::dropIfExists('rol_permiso');
     }
 };

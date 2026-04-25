@@ -21,14 +21,16 @@ return new class extends Migration
             $table->text('detalle')->default('');
             $table->ipAddress('ip')->nullable();
             $table->text('user_agent')->default('');
-            $table->jsonb('meta_json')->default('{}');
+            $table->text('meta_json')->default('{}');
             
             $table->timestampTz('created_at')->useCurrent();
             $table->timestampTz('updated_at')->useCurrent();
             $table->timestampTz('deleted_at')->nullable();
         });
 
-        DB::statement('ALTER TABLE acceso_bitacora ADD CONSTRAINT ck_acceso_bitacora__evento_no_vacio CHECK (length(trim(evento)) > 0)');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE acceso_bitacora ADD CONSTRAINT ck_acceso_bitacora__evento_no_vacio CHECK (length(trim(evento)) > 0)');
+        }
 
         Schema::table('acceso_bitacora', function (Blueprint $table) {
             $table->index('usuario_id', 'idx_acceso_bitacora__usuario_id');
@@ -38,16 +40,20 @@ return new class extends Migration
             $table->index('created_at', 'idx_acceso_bitacora__created_at');
         });
 
-        DB::unprepared('
-            CREATE TRIGGER trg_acceso_bitacora__set_updated_at
-            BEFORE UPDATE ON acceso_bitacora
-            FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-        ');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('
+                CREATE TRIGGER trg_acceso_bitacora__set_updated_at
+                BEFORE UPDATE ON acceso_bitacora
+                FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+            ');
+        }
     }
 
     public function down(): void
     {
-        DB::unprepared('DROP TRIGGER IF EXISTS trg_acceso_bitacora__set_updated_at ON acceso_bitacora');
+        if (DB::getDriverName() === 'pgsql') {
+            DB::unprepared('DROP TRIGGER IF EXISTS trg_acceso_bitacora__set_updated_at ON acceso_bitacora');
+        }
         Schema::dropIfExists('acceso_bitacora');
     }
 };
